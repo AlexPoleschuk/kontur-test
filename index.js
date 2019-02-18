@@ -8,17 +8,18 @@ function app() {
   readLine(processCommand);
 }
 
+// getFiles() получает из потока коллекцию объектов [...{filePath, data}]
 function getFiles() {
   const filePaths = getAllFilePathsWithExtension(process.cwd(), "js");
   let result = [];
 
-  for (let i = 0; i < filePaths.length; i++) {
-    result.push({ fname: filePaths[i], data: readFile(filePaths[i]) });
-  }
-
+ filePaths.map((filePath) =>
+    result.push({ fname: filePath, data: readFile(filePath) }));
+  
   return result;
 }
 
+// destructData() создает на основе коллекции [...{filePath, data}] массив объектов [...{comment}]
 function destructData() {
   let result = getFiles()
     .map(curFile => getData(curFile.fname, curFile.data))
@@ -26,6 +27,7 @@ function destructData() {
   return result;
 }
 
+// класс-конструктор для экземпляра комментария TO-DO
 class comment {
   constructor(name = "", date = "", text, importance = 0, fileName = "") {
     this.name = name;
@@ -36,6 +38,7 @@ class comment {
   }
 }
 
+// обработчик {filePath, data} => [...{comment}] для каждого файла
 function getData(fname, data) {
   let arr = data
     .split("//")
@@ -69,6 +72,7 @@ function getData(fname, data) {
   return res;
 }
 
+// обработчик команд
 function processCommand(command) {
   if (command.indexOf("user") === 0) {
     userF(destructData(), command.slice(5));
@@ -95,15 +99,18 @@ function processCommand(command) {
 }
 // TODO you can do it!
 
+// найти все TO-DO
 function showF(arr) {
   view(arr);
 }
 
+// найти TO-DO c '!'
 function importantF(arr) {
   let res = arr.filter(comment => comment.importance > 0);
   view(res);
 }
 
+// найти TO-DO от указанного пользователя
 function userF(arr, username) {
   let res = arr.filter(comment =>
     comment.name.toUpperCase().includes(username.toUpperCase())
@@ -111,13 +118,14 @@ function userF(arr, username) {
   view(res);
 }
 
+// сортировка TO-DO по важности / пользователям / дате
 function sortF(arr, param) {
   let res = [];
 
-  if (param.match(/importance/i)) {
+  if (/importance/i.test(param)) {
     res = arr.sort((a, b) => b.importance - a.importance);
   }
-  if (param.match(/user/i)) {
+  if (/user/i.test(param)) {
     res = arr.sort(function(a, b) {
       if (!a.name) {
         return 1;
@@ -127,7 +135,7 @@ function sortF(arr, param) {
       } else return a.name.localeCompare(b.name);
     });
   }
-  if (param.match(/date/i)) {
+  if (/date/i.test(param)) {
     res = arr.sort(function(a, b) {
       if (!a.date) {
         return 1;
@@ -140,11 +148,13 @@ function sortF(arr, param) {
   view(res);
 }
 
+// найти TO-DO от указанной даты и позже
 function dateF(arr, date) {
   let res = arr.filter(comment => new Date(comment.date) >= new Date(date));
   view(res);
 }
 
+// вывод результатов в консоль
 function view(arr) {
   let hUser = "user".length,
     hDate = "date".length,
@@ -193,7 +203,8 @@ function view(arr) {
 
     console.log(header.slice(header.indexOf("\n") + 1, header.length));
   } else console.log(headConstructor());
-
+  
+  // конструктор для header и footer таблицы результатов
   function headConstructor(u = hUser, d = hDate, c = hComment, f = hFileName) {
     let header =
       `  !  |` +
@@ -205,6 +216,7 @@ function view(arr) {
     return `${header}\n${"-".repeat(header.length)}`;
   }
 
+  // конструктор для строки в таблице результатов
   function strConstructor(item, max) {
     return max - item.length >= 0
       ? `  ${item}${" ".repeat(max - item.length)}  `
